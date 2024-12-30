@@ -1,1 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../src/css/globals.css" />
+    <link rel="stylesheet" href="../src/css/style.css" />
+  </head>
+  <body>
+    <div class="app-container">
 
+      <div class="PC-build">
+        <div class="overlap-group-wrapper">
+          <div class="overlap-group">
+            <img class="ellipse" src="https://c.animaapp.com/OCVbeajA/img/ellipse-5.svg" />
+            <img class="img" src="https://c.animaapp.com/OCVbeajA/img/ellipse-6.svg" />
+            <div class="text-wrapper">CURSED TEARS</div>
+
+            <div class="message-form">
+              <div class="rectangle">
+                <textarea id="messageInput" placeholder="What happened today?" maxlength="1000"></textarea>
+                <div class="message-controls">
+                  <span class="text-wrapper-4">0/1000</span>
+                  <span class="text-wrapper-5">0:00s</span>
+                </div>
+              </div>
+              <button class="rectangle-2" id="sendButton">
+                <span class="text-wrapper-3">>></span>
+              </button>
+            </div>
+
+            <div class="messages-container" id="messagesPC">
+
+            </div>
+
+            <div class="component">
+              <img class="align-justify" src="https://c.animaapp.com/OCVbeajA/img/align-justify.svg" />
+              <div class="text-wrapper-2">Menu</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mobile-build">
+        <div class="div">
+          <div class="overlap-group">
+            <img class="ellipse" src="https://c.animaapp.com/3Frpi5Vn/img/ellipse-8.svg" />
+            <img class="img" src="https://c.animaapp.com/3Frpi5Vn/img/ellipse-7.svg" />
+            <img class="ellipse-2" src="https://c.animaapp.com/3Frpi5Vn/img/ellipse-9.svg" />
+            <div class="text-wrapper">CURSED TEARS</div>
+            <div class="message-form-mobile">
+              <div class="rectangle">
+                <textarea id="messageInputMobile" placeholder="What happened today?" maxlength="1000"></textarea>
+                <div class="message-controls">
+                  <span class="text-wrapper-3">0/1000</span>
+                  <span class="text-wrapper-4">0:00s</span>
+                </div>
+              </div>
+              <button class="rectangle-2" id="sendButtonMobile">
+                <span class="text-wrapper-5">>></span>
+              </button>
+            </div>
+
+            <div class="messages-container" id="messagesMobile">
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="../src/js/main.js"></script>
+    <script src="../src/js/messages.js"></script>
+  </body>
+</html>
