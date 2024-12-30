@@ -1,1 +1,37 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
+body {
+    width: 100%;
+    height: 100vh;
+    overflow-x: hidden;
+    font-family: "Anonymous Pro", Helvetica, Arial, sans-serif;
+}
+
+@font-face {
+    font-family: "NATS-Regular";
+    src: url("../fonts/NATS-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Anonymous Pro";
+    src: url("../fonts/AnonymousPro-Regular.ttf") format("truetype");
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: "Anonymous Pro";
+    src: url("../fonts/AnonymousPro-Bold.ttf") format("truetype");
+    font-weight: bold;
+}
+
+:root {
+    --primary-color: rgb(0, 9, 57);
+    --secondary-color: rgb(0, 39, 111);
+    --text-color: #ffffff;
+    --input-bg: #ffffff;
+    --message-bg: #ffffff1a;
+}
