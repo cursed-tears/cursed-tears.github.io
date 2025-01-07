@@ -1,10 +1,13 @@
 let BOT_TOKEN = localStorage.getItem('botToken') || '';
 let currentChatId = null;
-let currentChatUpdateInterval;
-let notificationsEnabled = localStorage.getItem('notifications') === 'true';
 
 // Инициализация всех обработчиков событий
 document.addEventListener('DOMContentLoaded', () => {
+    // Загрузка темы
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.getElementById('themeSelect').value = savedTheme;
+
     // Мобильная навигация
     document.getElementById('menuToggle').addEventListener('click', () => {
         document.querySelector('.chats-list').classList.toggle('active');
@@ -47,6 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Смена темы
+    document.getElementById('themeSelect').addEventListener('change', (e) => {
+        document.documentElement.setAttribute('data-theme', e.target.value);
+        localStorage.setItem('theme', e.target.value);
+    });
+
     // Отправка сообщений
     document.getElementById('sendButton').addEventListener('click', () => {
         const input = document.getElementById('messageInput');
@@ -54,6 +63,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (text) {
             sendMessage(text);
             input.value = '';
+        }
+    });
+
+    // Enter для отправки
+    document.getElementById('messageInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById('sendButton').click();
         }
     });
 
@@ -75,23 +92,20 @@ document.addEventListener('DOMContentLoaded', () => {
 async function requestNotificationPermission() {
     if ('Notification' in window) {
         const permission = await Notification.requestPermission();
-        notificationsEnabled = permission === 'granted';
-        localStorage.setItem('notifications', notificationsEnabled);
+        localStorage.setItem('notifications', permission === 'granted');
         updateNotificationButton();
     }
 }
 
 function updateNotificationButton() {
     const button = document.getElementById('notifyButton');
-    button.style.color = notificationsEnabled ? '#0088cc' : '#b0b0b0';
+    button.style.color = localStorage.getItem('notifications') === 'true' ? 
+        'var(--accent)' : 'var(--text-secondary)';
 }
 
 function showNotification(title, body) {
-    if (notificationsEnabled && document.hidden) {
-        new Notification(title, {
-            body: body,
-            icon: '/icon.png'
-        });
+    if (localStorage.getItem('notifications') === 'true' && document.hidden) {
+        new Notification(title, { body });
     }
 }
 
@@ -141,8 +155,8 @@ async function getChatMessages(chatId) {
             .filter(update => update.message && update.message.chat.id === chatId)
             .map(update => ({
                 text: update.message.text || 'Медиафайл',
-                isBot: update.message.from.id.toString() === BOT_TOKEN.split(':')[0],
-                from: update.message.from.first_name || 'Бот',
+                isBot: false,
+                from: update.message.from.first_name || 'Пользователь',
                 date: new Date(update.message.date * 1000)
             }));
     } catch (error) {
@@ -183,15 +197,6 @@ function selectChat(chat) {
     document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
     event.currentTarget.classList.add('active');
     displayMessages(chat.id);
-
-    if (currentChatUpdateInterval) {
-        clearInterval(currentChatUpdateInterval);
-    }
-    
-    currentChatUpdateInterval = setInterval(() => {
-        displayMessages(chat.id);
-    }, 3000);
-
     document.querySelector('.chats-list').classList.remove('active');
 }
 
