@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html data-theme="dark">
 <head>
-    <title>Cursed Tears</title>
+    <title>Cursed Space</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -11,7 +11,7 @@
         <div class="menu-toggle" id="menuToggle">
             <i class="fas fa-bars"></i>
         </div>
-        <div class="logo">Cursed Tears</div>
+        <div class="logo">Cursed Space</div>
         <div class="controls">
             <button id="notifyButton"><i class="fas fa-bell"></i></button>
             <button id="refreshButton"><i class="fas fa-sync-alt"></i></button>
@@ -21,14 +21,21 @@
 
     <div id="tokenModal" class="modal">
         <div class="modal-content">
-            <h2>Настройки бота</h2>
+            <h2>Настройки</h2>
             <input type="text" id="botToken" placeholder="Введите токен бота">
+            <div class="theme-selector">
+                <select id="themeSelect">
+                    <option value="dark">Тёмная тема</option>
+                    <option value="light">Светлая тема</option>
+                    <option value="midnight">Полночь</option>
+                </select>
+            </div>
             <button id="saveToken">Сохранить</button>
         </div>
     </div>
 
     <div class="container">
-        <div class="chats-list" id="chatsList">
+        <div class="chats-list">
             <div class="header">Чаты</div>
             <div id="chatsContainer"></div>
         </div>
