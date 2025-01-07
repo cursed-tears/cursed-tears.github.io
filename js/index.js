@@ -1,14 +1,12 @@
 let BOT_TOKEN = localStorage.getItem('botToken') || '';
 let currentChatId = null;
+let lastMessageId = 0;
 
-// Инициализация всех обработчиков событий
 document.addEventListener('DOMContentLoaded', () => {
-    // Загрузка темы
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
     document.getElementById('themeSelect').value = savedTheme;
 
-    // Мобильная навигация
     document.getElementById('menuToggle').addEventListener('click', () => {
         document.querySelector('.chats-list').classList.toggle('active');
     });
@@ -17,10 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('.chats-list').classList.remove('active');
     });
 
-    // Настройки и обновление
     document.getElementById('notifyButton').addEventListener('click', requestNotificationPermission);
     
     document.getElementById('settingsButton').addEventListener('click', () => {
+        document.getElementById('botToken').value = BOT_TOKEN;
         document.getElementById('tokenModal').style.display = 'block';
     });
 
@@ -31,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
         displayChats();
     });
 
-    // Модальное окно
     window.addEventListener('click', (event) => {
         const modal = document.getElementById('tokenModal');
         if (event.target === modal) {
@@ -39,9 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Сохранение токена
     document.getElementById('saveToken').addEventListener('click', () => {
-        const token = document.getElementById('botToken').value;
+        const token = document.getElementById('botToken').value.trim();
         if (token) {
             BOT_TOKEN = token;
             localStorage.setItem('botToken', token);
@@ -50,13 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Смена темы
     document.getElementById('themeSelect').addEventListener('change', (e) => {
-        document.documentElement.setAttribute('data-theme', e.target.value);
-        localStorage.setItem('theme', e.target.value);
+        const theme = e.target.value;
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
     });
 
-    // Отправка сообщений
     document.getElementById('sendButton').addEventListener('click', () => {
         const input = document.getElementById('messageInput');
         const text = input.value.trim();
@@ -66,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Enter для отправки
     document.getElementById('messageInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -74,21 +68,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Отправка файлов
     document.getElementById('fileInput').addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
             sendMedia(file);
+            e.target.value = '';
         }
     });
 
-    // Запуск приложения
     if (BOT_TOKEN) {
         displayChats();
+    } else {
+        document.getElementById('tokenModal').style.display = 'block';
     }
 });
 
-// Уведомления
 async function requestNotificationPermission() {
     if ('Notification' in window) {
         const permission = await Notification.requestPermission();
@@ -109,10 +103,10 @@ function showNotification(title, body) {
     }
 }
 
-// Работа с чатами
 async function getChats() {
     try {
         const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
+        if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         const chats = new Map();
         
@@ -128,7 +122,7 @@ async function getChats() {
         
         return Array.from(chats.values());
     } catch (error) {
-        console.error('Ошибка получения чатов:', error);
+        console.error('Error fetching chats:', error);
         return [];
     }
 }
@@ -141,6 +135,7 @@ async function displayChats() {
     chats.forEach(chat => {
         const chatElement = document.createElement('div');
         chatElement.className = 'chat-item';
+        if (chat.id === currentChatId) chatElement.classList.add('active');
         chatElement.textContent = chat.name;
         chatElement.addEventListener('click', () => selectChat(chat));
         chatsContainer.appendChild(chatElement);
@@ -150,17 +145,24 @@ async function displayChats() {
 async function getChatMessages(chatId) {
     try {
         const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
+        if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
+        
         return data.result
             .filter(update => update.message && update.message.chat.id === chatId)
-            .map(update => ({
-                text: update.message.text || 'Медиафайл',
-                isBot: false,
-                from: update.message.from.first_name || 'Пользователь',
-                date: new Date(update.message.date * 1000)
-            }));
+            .map(update => {
+                const msg = update.message;
+                const botId = BOT_TOKEN.split(':')[0];
+                return {
+                    id: msg.message_id,
+                    text: msg.text || 'Медиафайл',
+                    isBot: msg.from.id.toString() === botId,
+                    from: msg.from.first_name || (msg.from.id.toString() === botId ? 'Бот' : 'Пользователь'),
+                    date: new Date(msg.date * 1000)
+                };
+            });
     } catch (error) {
-        console.error('Ошибка получения сообщений:', error);
+        console.error('Error fetching messages:', error);
         return [];
     }
 }
@@ -168,78 +170,5 @@ async function getChatMessages(chatId) {
 async function displayMessages(chatId) {
     const messages = await getChatMessages(chatId);
     const messagesList = document.getElementById('messagesList');
-    const lastMessage = messagesList.lastElementChild;
     
-    messagesList.innerHTML = '';
-    
-    messages.forEach(msg => {
-        const messageElement = document.createElement('div');
-        messageElement.className = `message ${msg.isBot ? 'outgoing' : 'incoming'}`;
-        messageElement.innerHTML = `
-            <div class="message-header">${msg.from}</div>
-            <div class="message-text">${msg.text}</div>
-            <div class="message-time">${msg.date.toLocaleTimeString()}</div>
-        `;
-        messagesList.appendChild(messageElement);
-    });
-
-    if (lastMessage && messagesList.lastElementChild !== lastMessage) {
-        const msgText = messagesList.lastElementChild.querySelector('.message-text').textContent;
-        showNotification('Новое сообщение', msgText);
-    }
-    
-    messagesList.scrollTop = messagesList.scrollHeight;
-}
-
-function selectChat(chat) {
-    currentChatId = chat.id;
-    document.getElementById('currentChatName').querySelector('span').textContent = chat.name;
-    document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    displayMessages(chat.id);
-    document.querySelector('.chats-list').classList.remove('active');
-}
-
-async function sendMessage(text) {
-    if (!currentChatId) return;
-    
-    try {
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                chat_id: currentChatId,
-                text: text
-            })
-        });
-        
-        if (response.ok) {
-            displayMessages(currentChatId);
-        }
-    } catch (error) {
-        console.error('Ошибка отправки сообщения:', error);
-    }
-}
-
-async function sendMedia(file) {
-    if (!currentChatId) return;
-
-    try {
-        const formData = new FormData();
-        formData.append('chat_id', currentChatId);
-        formData.append('document', file);
-
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
-            method: 'POST',
-            body: formData
-        });
-
-        if (response.ok) {
-            displayMessages(currentChatId);
-        }
-    } catch (error) {
-        console.error('Ошибка отправки файла:', error);
-    }
-}
+    if (messages.length > 0 &&
